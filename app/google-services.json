@@ -1,0 +1,99 @@
+{
+  "project_info": {
+    "project_number": "446666207644",
+    "firebase_url": "https://ojthourscounterapp.firebaseio.com",
+    "project_id": "ojthourscounterapp",
+    "storage_bucket": "ojthourscounterapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:446666207644:android:2562be1a4b4624ee",
+        "android_client_info": {
+          "package_name": "com.example.edison.internshiptrackerapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "446666207644-0vqb8d5bovl1sc77jhb7imr49o5rj087.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.edison.internshiptrackerapp",
+            "certificate_hash": "d4e0a5ce5a1a52dbe25254f065afad72192cba1b"
+          }
+        },
+        {
+          "client_id": "446666207644-9demcav4d5sp4g3mhedrh312s8rduvmo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa85fOHjVze_-8frTLJvj2JPDVPjM361M"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "446666207644-9demcav4d5sp4g3mhedrh312s8rduvmo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:446666207644:android:d056797d842b88f3",
+        "android_client_info": {
+          "package_name": "com.example.edison.ojthourscounterapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "446666207644-cm7ihq7pogocns5acf3o52d0g5aogh37.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.edison.ojthourscounterapp",
+            "certificate_hash": "d4e0a5ce5a1a52dbe25254f065afad72192cba1b"
+          }
+        },
+        {
+          "client_id": "446666207644-9demcav4d5sp4g3mhedrh312s8rduvmo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa85fOHjVze_-8frTLJvj2JPDVPjM361M"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "446666207644-9demcav4d5sp4g3mhedrh312s8rduvmo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

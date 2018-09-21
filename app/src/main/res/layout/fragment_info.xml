@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".InfoActivity">
+
+    <!-- TODO: Update blank fragment layout -->
+<LinearLayout
+    android:layout_marginTop="60dp"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="wrap_content">
+    <android.support.v7.widget.CardView
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:elevation="20dp"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="10dp"
+                android:text="Info"
+                android:textColor="@color/colorAccent"
+                android:textSize="15sp"
+                android:layout_height="wrap_content" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:orientation="vertical"
+
+                android:id="@+id/setttingsEditProfile"
+                >
+
+                <TextView
+                    android:layout_marginStart="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Total Hours"
+                    android:textColor="#000"
+                    android:gravity="left|center"
+                    android:textSize="15sp"
+                    android:id="@+id/totalHoursLabel"
+
+                    />
+
+                <TextView
+                    android:layout_marginStart="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="20 hrs 30 min"
+                    android:textColor="#000"
+                    android:gravity="end|center"
+                    android:textSize="30sp"
+                    android:layout_marginEnd="10dp"
+
+                    android:id="@+id/totalHoursText"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginTop="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/goalHourButton"
+                android:orientation="vertical"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+
+                >
+
+                <TextView
+                    android:layout_marginStart="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Goal Duration"
+                    android:textColor="#000"
+                    android:gravity="left|center"
+                    android:textSize="15sp"
+                    android:id="@+id/goalHoursLabel"
+
+                    />
+
+                <TextView
+                    android:layout_marginStart="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="400 hours"
+                    android:textColor="#000"
+                    android:gravity="end|center"
+                    android:textSize="30sp"
+                    android:layout_marginEnd="10dp"
+
+                    android:id="@+id/goalHoursText"
+                    />
+            </LinearLayout>
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:elevation="20dp"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+
+            android:orientation="vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="10dp"
+            android:text="Analytics"
+            android:textColor="@color/colorAccent"
+            android:textSize="15sp"
+            android:layout_height="wrap_content" />
+            <FrameLayout
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                >
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="90dp"
+                >
+
+
+
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:gravity="right|center"
+                    android:shadowColor="#64000000"
+                    android:shadowDx="0"
+                    android:shadowDy="5"
+                    android:shadowRadius="5"
+                    android:text="Average Hours"
+                    android:textColor="#000"
+                    android:textSize="15sp"/>
+
+                <TextView
+                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:gravity="right|center"
+                    android:shadowColor="#64000000"
+                    android:shadowDx="0"
+                    android:shadowDy="5"
+                    android:shadowRadius="5"
+                    android:text="Minimum Hours"
+                    android:textColor="#000"
+                    android:textSize="15sp"/>
+                <TextView
+                    android:layout_marginTop="10dp"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:gravity="right|center"
+                    android:shadowColor="#64000000"
+                    android:shadowDx="0"
+                    android:shadowDy="5"
+                    android:shadowRadius="5"
+                    android:text="Maximum Hours"
+                    android:textColor="#000"
+                    android:textSize="15sp"/>
+                <TextView
+                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:gravity="right|center"
+                    android:shadowColor="#64000000"
+                    android:shadowDx="0"
+                    android:shadowDy="5"
+                    android:shadowRadius="5"
+                    android:text="Progress"
+                    android:textColor="#000"
+                    android:textSize="15sp"/>
+            </LinearLayout>
+
+            <devlight.io.library.ArcProgressStackView
+
+                android:id="@+id/apsv"
+                android:layout_marginStart="40dp"
+                android:layout_marginEnd="40dp"
+                android:layout_gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:apsv_rounded="false"
+                app:apsv_shadowed="false"
+                app:apsv_animated="true"
+                app:apsv_dragged="true"
+                app:apsv_leveled="true"
+                app:apsv_typeface="fonts/agency.ttf"
+                app:apsv_text_color="#fff"
+                app:apsv_shadow_distance="5dp"
+                app:apsv_shadow_angle="90"
+
+                app:apsv_shadow_radius="10dp"
+                app:apsv_shadow_color="#000"
+                app:apsv_animation_duration="1000"
+                app:apsv_interpolator="@android:anim/bounce_interpolator"
+                app:apsv_draw_width="75%"
+                app:apsv_model_offset="5dp"
+                app:apsv_model_bg_enabled="true"
+                app:apsv_start_angle="270"
+                app:apsv_sweep_angle="360"
+                app:apsv_indicator_orientation="vertical"
+                app:apsv_preview_colors="@array/default_preview"
+                app:apsv_preview_bg="#ccc"/>
+
+            </FrameLayout>
+        </LinearLayout>
+
+    </android.support.v7.widget.CardView>
+
+</LinearLayout>
+</FrameLayout>
