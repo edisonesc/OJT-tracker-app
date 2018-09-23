@@ -39,6 +39,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import devlight.io.library.ArcProgressStackView;
+import in.srain.cube.views.ptr.PtrClassicFrameLayout;
+import in.srain.cube.views.ptr.PtrDefaultHandler;
+import in.srain.cube.views.ptr.PtrFrameLayout;
+import in.srain.cube.views.ptr.PtrHandler;
 import me.drakeet.materialdialog.MaterialDialog;
 
 
@@ -103,11 +107,11 @@ public class InfoActivity extends Fragment implements Animator.AnimatorListener 
     private int goalHour;
     ArrayList<String[]> data = new ArrayList();
     ArrayList<long[]> timeLists = new ArrayList<>();
-    ArrayList<Integer> maxHour = new ArrayList<>(), minHour = new ArrayList<>();
+    ArrayList<Integer> maxHour = new ArrayList<>();
     private   DataHolder dataHolder = new DataHolder();
 
 
-
+    private PtrClassicFrameLayout ptrClassicFrameLayout;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -120,6 +124,8 @@ public class InfoActivity extends Fragment implements Animator.AnimatorListener 
         goalHoursLabel = view.findViewById(R.id.goalHoursLabel);
         goalHoursText = view.findViewById(R.id.goalHoursText);
         goalHourButton = view.findViewById(R.id.goalHourButton);
+        ptrClassicFrameLayout = view.findViewById(R.id.view_pager_ptr_frame);
+
         goalHoursLabel.setTypeface(EasyFonts.ostrichBlack(getContext()));
         totalLabel.setTypeface(EasyFonts.ostrichBlack(getContext()));
         goalHoursText.setTypeface(EasyFonts.captureIt(getContext()));
@@ -132,6 +138,8 @@ public class InfoActivity extends Fragment implements Animator.AnimatorListener 
         arcProgressStackView.setSweepAngle(270);
 
 
+
+        refresh();
         final View goalLayout = LayoutInflater.from(getActivity()).inflate(R.layout.goal_hour_layout, null);
         final EditText goalEditText = goalLayout.findViewById(R.id.goalEditText);
         goalEditText.setText(String.valueOf(DataHolder.getGoalHours()));
@@ -152,6 +160,7 @@ public class InfoActivity extends Fragment implements Animator.AnimatorListener 
                                 map.put("goal_hour", Integer.valueOf(goalEditText.getText().toString()));
                               databaseReference.child("Users").child("Edison").updateChildren(map);
                               materialDialog.dismiss();
+                              refresh();
 
 
                             }
@@ -176,202 +185,28 @@ public class InfoActivity extends Fragment implements Animator.AnimatorListener 
 
 
 
-        databaseReference.child("Users").child("Edison").addValueEventListener(new ValueEventListener() {
+
+        ptrClassicFrameLayout.setPtrHandler(new PtrHandler() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                dataHolder.setGoalHours(dataSnapshot.child("goal_hour").getValue(Integer.class));
-                goalHoursText.setText(DataHolder.getGoalHours() + " hours");
+            public boolean checkCanDoRefresh(PtrFrameLayout frame, View content, View header) {
+                return PtrDefaultHandler.checkContentCanBePulledDown(frame, content, header);
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-        databaseReference.child("Users").child("Edison").child("logs").addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
-                String key = dataSnapshot.getKey();
-
-
-                databaseReference.child("Users").child("Edison").child("logs").child(key).addChildEventListener(new ChildEventListener() {
+            public void onRefreshBegin(PtrFrameLayout frame) {
+                frame.postDelayed(new Runnable() {
                     @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                        Toast.makeText(getContext(),
-//                                String.valueOf(dataSnapshot.child("time_in")), Toast.LENGTH_SHORT).show();
-                        String timeIn = dataSnapshot.child("time_in").getValue(String.class);
-                        String timeOut = dataSnapshot.child("time_out").getValue(String.class);
-                        String[] timeData = {timeIn, timeOut};
-                        data.add(timeData);
-                        SimpleDateFormat formatTime = new SimpleDateFormat("HH:mm");
-
-                        Date in = null, out = null;
-
-                        try{
-                            in = formatTime.parse(timeIn);
-                            out = formatTime.parse(timeOut);
+                    public void run() {
 
 
-                            long diff = in.getTime() - out.getTime();
-                            long diffHours = diff / (60 * 60 * 1000) % 24;
-                            long diffMinutes = diff / (60 * 1000) % 60;
+                        refresh();
+                        Toast.makeText(getContext(), "REF", Toast.LENGTH_SHORT).show();
 
-                            long[] time = {Math.abs(diffHours), Math.abs(diffMinutes)};
-                            timeLists.add(time);
-
-                        }
-                        catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        long totalHours = 0, totalMinutes = 0;
-
-                        dataHolder.setHoursSize(timeLists.size());
-                        for(int i = 0; i < timeLists.size(); i++){
-                            totalHours += timeLists.get(i)[0];
-                            totalMinutes += timeLists.get(i)[1];
-
-                            maxHour.add(Integer.valueOf(String.valueOf(timeLists.get(i)[0])));
-
-//                            Toast.makeText(getContext(), String.valueOf( timeLists.get(i)[1]), Toast.LENGTH_SHORT).show();
-//                            totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
-                        }
-
-//
-                        if(totalMinutes >= 60 ) {
-                            //FUCK
-                            long minutesToHours = Math.abs(totalMinutes / 60);
-                            totalHours += minutesToHours;
-                            totalMinutes -= 60;
-//                            Toast.makeText(getContext(), String.valueOf(minutesToHours + "\n" + totalHours
-//                            + "\n" + totalMinutes)  , Toast.LENGTH_SHORT).show();
-//                            totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
-
-
-                        }
-
-//                        Toast.makeText(getContext(), "max :" + Collections.max(maxHour) + "\n"
-//                                + "min :" + Collections.min(maxHour)
-//                                , Toast.LENGTH_SHORT).show();
-                        dataHolder.setMaxHours( Collections.max(maxHour));
-                        dataHolder.setMinHours(Collections.min(maxHour));
-
-                        dataHolder.setTotalHours(totalHours);
-                        totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
-
-//                        Collections.sort(DataHolder.getHours());
+                        ptrClassicFrameLayout.refreshComplete();
                     }
-
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                    }
-
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
-
-
-                models.add(new ArcProgressStackView.Model( (float)DataHolder.getTotalHours() / DataHolder.getHoursSize()  +" Hours", (float) DataHolder.getTotalHours() / DataHolder.getHoursSize() , Color.parseColor("#e8eaf6"), Color.parseColor("#00695c")));
-                models.add(new ArcProgressStackView.Model( (float)DataHolder.getMinHours() + " Hours", (float) DataHolder.getMinHours() / 24 * 100, Color.parseColor("#e8eaf6"), Color.parseColor("#005662")));
-                models.add(new ArcProgressStackView.Model((float)DataHolder.getMaxHours()  + " Hours", (float) DataHolder.getMaxHours() / 24 * 100,Color.parseColor("#e8eaf6"), Color.parseColor("#006db3")));
-                models.add(new ArcProgressStackView.Model(String.valueOf(DataHolder.getTotalHours() + " /" + DataHolder.getGoalHours() ),
-                        Float.valueOf(String.valueOf((float)DataHolder.getTotalHours()/ DataHolder.getGoalHours()  * 100))
-                ,Color.parseColor("#e8eaf6"), Color.parseColor("#000a12")));
-//                Toast.makeText(getContext(), "max : " + DataHolder.getMaxHours() , Toast.LENGTH_SHORT).show();
-                final Float[] modelsData = {
-
-                        (float) DataHolder.getTotalHours() / DataHolder.getHoursSize(),
-                        (float) DataHolder.getMinHours() / 24 * 100,
-                        (float) DataHolder.getMaxHours() / 24 * 100,
-
-                        Float.valueOf(String.valueOf((float)DataHolder.getTotalHours()/DataHolder.getGoalHours()  * 100))
-
-                };
-
-                Toast.makeText(getContext(), DataHolder.getGoalHours() + " HERSH", Toast.LENGTH_SHORT).show();
-                arcProgressStackView.setModels(models);
-                final ValueAnimator valueAnimator = ValueAnimator.ofFloat(1.0F, 105.0F);
-                valueAnimator.setDuration(800);
-                valueAnimator.setStartDelay(200);
-                valueAnimator.setRepeatMode(ValueAnimator.RESTART);
-                valueAnimator.setRepeatCount(models.size() -1);
-                valueAnimator.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-
-                        animation.removeListener(this);
-                        animation.addListener(this);
-                        mCounter = 0;
-//                        for(ArcProgressStackView.Model model : arcProgressStackView.getModels()) model.setProgress(50);
-
-                        for(int i = 0; i < models.size(); i++){
-
-                            models.get(i).setProgress(modelsData[i]);
-                        }
-                        arcProgressStackView.animateProgress();
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {
-                        mCounter++;
-                    }
-                });
-                valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animation) {
-
-                        arcProgressStackView.getModels().get(Math.min(mCounter, models.size() -1))
-                                .setProgress((Float) animation.getAnimatedValue());
-
-//                        models.get(0).setProgress(a);
-
-                        arcProgressStackView.postInvalidate();
-                    }
-                });
-
-
-                valueAnimator.start();
-
-
-
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+                }, 300);
             }
         });
-
-
         return  view;
     }
 
@@ -449,5 +284,417 @@ public class InfoActivity extends Fragment implements Animator.AnimatorListener 
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    public void refresh(){
+        final ArrayList<String[]> data = new ArrayList();
+        final ArrayList<long[]> timeLists = new ArrayList<>();
+        final ArrayList<Integer> maxHour = new ArrayList<>();
+        databaseReference.child("Users").child("Edison").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                dataHolder.setGoalHours(dataSnapshot.child("goal_hour").getValue(Integer.class));
+                goalHoursText.setText(DataHolder.getGoalHours() + " hours");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        databaseReference.child("Users").child("Edison").child("logs").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+                String key = dataSnapshot.getKey();
+                databaseReference.child("Users").child("Edison").child("logs").child(key).addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        String timeIn = dataSnapshot.child("time_in").getValue(String.class);
+                        String timeOut = dataSnapshot.child("time_out").getValue(String.class);
+                        String[] timeData = {timeIn, timeOut};
+                        data.add(timeData);
+                        SimpleDateFormat formatTime = new SimpleDateFormat("HH:mm");
+
+                        Date in = null, out = null;
+
+                        try{
+                            in = formatTime.parse(timeIn);
+                            out = formatTime.parse(timeOut);
+
+
+                            long diff = in.getTime() - out.getTime();
+                            long diffHours = diff / (60 * 60 * 1000) % 24;
+                            long diffMinutes = diff / (60 * 1000) % 60;
+
+                            long[] time = {Math.abs(diffHours), Math.abs(diffMinutes)};
+                            timeLists.add(time);
+
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        long totalHours1 = 0, totalMinutes1 = 0;
+
+                        dataHolder.setHoursSize(timeLists.size());
+                        for(int i = 0; i < timeLists.size(); i++){
+                            totalHours1 += timeLists.get(i)[0];
+                            totalMinutes1 += timeLists.get(i)[1];
+
+                            maxHour.add(Integer.valueOf(String.valueOf(timeLists.get(i)[0])));
+
+//                            Toast.makeText(getContext(), String.valueOf( timeLists.get(i)[1]), Toast.LENGTH_SHORT).show();
+//                            totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
+                        }
+
+//
+                        if(totalMinutes1 >= 60 ) {
+                            //FUCK
+                            long minutesToHours = Math.abs(totalMinutes1 / 60);
+                            totalHours1 += minutesToHours;
+                            totalMinutes1 -= 60;
+//                            Toast.makeText(getContext(), String.valueOf(minutesToHours + "\n" + totalHours
+//                            + "\n" + totalMinutes)  , Toast.LENGTH_SHORT).show();
+//                            totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
+
+
+                        }
+
+//                        Toast.makeText(getContext(), "max :" + Collections.max(maxHour) + "\n"
+//                                + "min :" + Collections.min(maxHour)
+//                                , Toast.LENGTH_SHORT).show();
+                        dataHolder.setMaxHours( Collections.max(maxHour));
+                        dataHolder.setMinHours(Collections.min(maxHour));
+
+                        dataHolder.setTotalHours(totalHours1);
+                        totalDuration.setText(String.valueOf(totalHours1 + " hrs " + totalMinutes1 + " minutes"));
+
+//                        Collections.sort(DataHolder.getHours());
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+
+                ArrayList<ArcProgressStackView.Model> models = new ArrayList<>();
+                models.add(new ArcProgressStackView.Model( (float)DataHolder.getTotalHours() / DataHolder.getHoursSize()  +" Hours", (float) DataHolder.getTotalHours() / DataHolder.getHoursSize() , Color.parseColor("#e8eaf6"), Color.parseColor("#00695c")));
+                models.add(new ArcProgressStackView.Model( (float)DataHolder.getMinHours() + " Hours", (float) DataHolder.getMinHours() / 24 * 100, Color.parseColor("#e8eaf6"), Color.parseColor("#005662")));
+                models.add(new ArcProgressStackView.Model((float)DataHolder.getMaxHours()  + " Hours", (float) DataHolder.getMaxHours() / 24 * 100,Color.parseColor("#e8eaf6"), Color.parseColor("#006db3")));
+                models.add(new ArcProgressStackView.Model(String.valueOf(DataHolder.getTotalHours() + "/" + DataHolder.getGoalHours() ),
+                        Float.valueOf(String.valueOf((float)DataHolder.getTotalHours()/ DataHolder.getGoalHours()  * 100))
+                        ,Color.parseColor("#e8eaf6"), Color.parseColor("#000a12")));
+                arcProgressStackView.setModels(models);
+                arcProgressStackView.postInvalidate();
+
+//                                valueAnimator.start();
+
+                animateChart();
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                String key = dataSnapshot.getKey();
+                databaseReference.child("Users").child("Edison").child("logs").child(key).addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        String timeIn = dataSnapshot.child("time_in").getValue(String.class);
+                        String timeOut = dataSnapshot.child("time_out").getValue(String.class);
+                        String[] timeData = {timeIn, timeOut};
+                        data.add(timeData);
+                        SimpleDateFormat formatTime = new SimpleDateFormat("HH:mm");
+
+                        Date in = null, out = null;
+
+                        try{
+                            in = formatTime.parse(timeIn);
+                            out = formatTime.parse(timeOut);
+
+
+                            long diff = in.getTime() - out.getTime();
+                            long diffHours = diff / (60 * 60 * 1000) % 24;
+                            long diffMinutes = diff / (60 * 1000) % 60;
+
+                            long[] time = {Math.abs(diffHours), Math.abs(diffMinutes)};
+                            timeLists.add(time);
+
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        long totalHours1 = 0, totalMinutes1 = 0;
+
+                        dataHolder.setHoursSize(timeLists.size());
+                        for(int i = 0; i < timeLists.size(); i++){
+                            totalHours1 += timeLists.get(i)[0];
+                            totalMinutes1 += timeLists.get(i)[1];
+
+                            maxHour.add(Integer.valueOf(String.valueOf(timeLists.get(i)[0])));
+
+//                            Toast.makeText(getContext(), String.valueOf( timeLists.get(i)[1]), Toast.LENGTH_SHORT).show();
+//                            totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
+                        }
+
+//
+                        if(totalMinutes1 >= 60 ) {
+                            //FUCK
+                            long minutesToHours = Math.abs(totalMinutes1 / 60);
+                            totalHours1 += minutesToHours;
+                            totalMinutes1 -= 60;
+//                            Toast.makeText(getContext(), String.valueOf(minutesToHours + "\n" + totalHours
+//                            + "\n" + totalMinutes)  , Toast.LENGTH_SHORT).show();
+//                            totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
+
+
+                        }
+
+//                        Toast.makeText(getContext(), "max :" + Collections.max(maxHour) + "\n"
+//                                + "min :" + Collections.min(maxHour)
+//                                , Toast.LENGTH_SHORT).show();
+                        dataHolder.setMaxHours( Collections.max(maxHour));
+                        dataHolder.setMinHours(Collections.min(maxHour));
+
+                        dataHolder.setTotalHours(totalHours1);
+                        totalDuration.setText(String.valueOf(totalHours1 + " hrs " + totalMinutes1 + " minutes"));
+
+//                        Collections.sort(DataHolder.getHours());
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+
+                ArrayList<ArcProgressStackView.Model> models = new ArrayList<>();
+                models.add(new ArcProgressStackView.Model( (float)DataHolder.getTotalHours() / DataHolder.getHoursSize()  +" Hours", (float) DataHolder.getTotalHours() / DataHolder.getHoursSize() , Color.parseColor("#e8eaf6"), Color.parseColor("#00695c")));
+                models.add(new ArcProgressStackView.Model( (float)DataHolder.getMinHours() + " Hours", (float) DataHolder.getMinHours() / 24 * 100, Color.parseColor("#e8eaf6"), Color.parseColor("#005662")));
+                models.add(new ArcProgressStackView.Model((float)DataHolder.getMaxHours()  + " Hours", (float) DataHolder.getMaxHours() / 24 * 100,Color.parseColor("#e8eaf6"), Color.parseColor("#006db3")));
+                models.add(new ArcProgressStackView.Model(String.valueOf(DataHolder.getTotalHours() + "/" + DataHolder.getGoalHours() ),
+                        Float.valueOf(String.valueOf((float)DataHolder.getTotalHours()/ DataHolder.getGoalHours()  * 100))
+                        ,Color.parseColor("#e8eaf6"), Color.parseColor("#000a12")));
+                arcProgressStackView.setModels(models);
+                arcProgressStackView.postInvalidate();
+
+//                                valueAnimator.start();
+                animateChart();
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                String key = dataSnapshot.getKey();
+                databaseReference.child("Users").child("Edison").child("logs").child(key).addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        String timeIn = dataSnapshot.child("time_in").getValue(String.class);
+                        String timeOut = dataSnapshot.child("time_out").getValue(String.class);
+                        String[] timeData = {timeIn, timeOut};
+                        data.add(timeData);
+                        SimpleDateFormat formatTime = new SimpleDateFormat("HH:mm");
+
+                        Date in = null, out = null;
+
+                        try{
+                            in = formatTime.parse(timeIn);
+                            out = formatTime.parse(timeOut);
+
+
+                            long diff = in.getTime() - out.getTime();
+                            long diffHours = diff / (60 * 60 * 1000) % 24;
+                            long diffMinutes = diff / (60 * 1000) % 60;
+
+                            long[] time = {Math.abs(diffHours), Math.abs(diffMinutes)};
+                            timeLists.add(time);
+
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        long totalHours1 = 0, totalMinutes1 = 0;
+
+                        dataHolder.setHoursSize(timeLists.size());
+                        for(int i = 0; i < timeLists.size(); i++){
+                            totalHours1 += timeLists.get(i)[0];
+                            totalMinutes1 += timeLists.get(i)[1];
+
+                            maxHour.add(Integer.valueOf(String.valueOf(timeLists.get(i)[0])));
+
+//                            Toast.makeText(getContext(), String.valueOf( timeLists.get(i)[1]), Toast.LENGTH_SHORT).show();
+//                            totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
+                        }
+
+//
+                        if(totalMinutes1 >= 60 ) {
+                            //FUCK
+                            long minutesToHours = Math.abs(totalMinutes1 / 60);
+                            totalHours1 += minutesToHours;
+                            totalMinutes1 -= 60;
+//                            Toast.makeText(getContext(), String.valueOf(minutesToHours + "\n" + totalHours
+//                            + "\n" + totalMinutes)  , Toast.LENGTH_SHORT).show();
+//                            totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
+
+
+                        }
+
+//                        Toast.makeText(getContext(), "max :" + Collections.max(maxHour) + "\n"
+//                                + "min :" + Collections.min(maxHour)
+//                                , Toast.LENGTH_SHORT).show();
+                        dataHolder.setMaxHours( Collections.max(maxHour));
+                        dataHolder.setMinHours(Collections.min(maxHour));
+
+                        dataHolder.setTotalHours(totalHours1);
+                        totalDuration.setText(String.valueOf(totalHours1 + " hrs " + totalMinutes1 + " minutes"));
+
+//                        Collections.sort(DataHolder.getHours());
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+
+                ArrayList<ArcProgressStackView.Model> models = new ArrayList<>();
+                models.add(new ArcProgressStackView.Model( (float)DataHolder.getTotalHours() / DataHolder.getHoursSize()  +" Hours", (float) DataHolder.getTotalHours() / DataHolder.getHoursSize() , Color.parseColor("#e8eaf6"), Color.parseColor("#00695c")));
+                models.add(new ArcProgressStackView.Model( (float)DataHolder.getMinHours() + " Hours", (float) DataHolder.getMinHours() / 24 * 100, Color.parseColor("#e8eaf6"), Color.parseColor("#005662")));
+                models.add(new ArcProgressStackView.Model((float)DataHolder.getMaxHours()  + " Hours", (float) DataHolder.getMaxHours() / 24 * 100,Color.parseColor("#e8eaf6"), Color.parseColor("#006db3")));
+                models.add(new ArcProgressStackView.Model(String.valueOf(DataHolder.getTotalHours() + "/" + DataHolder.getGoalHours() ),
+                        Float.valueOf(String.valueOf((float)DataHolder.getTotalHours()/ DataHolder.getGoalHours()  * 100))
+                        ,Color.parseColor("#e8eaf6"), Color.parseColor("#000a12")));
+                arcProgressStackView.setModels(models);
+                arcProgressStackView.postInvalidate();
+
+//                                valueAnimator.start();
+                animateChart();
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    private void animateChart(){
+        final int[] mCounter = new int[1];
+        final Float[] modelsData = {
+
+                (float) DataHolder.getTotalHours() / DataHolder.getHoursSize(),
+                (float) DataHolder.getMinHours() / 24 * 100,
+                (float) DataHolder.getMaxHours() / 24 * 100,
+
+                Float.valueOf(String.valueOf((float)DataHolder.getTotalHours()/DataHolder.getGoalHours()  * 100))
+
+        };
+        final ValueAnimator valueAnimator = ValueAnimator.ofFloat(1.0F, 105.0F);
+        valueAnimator.setDuration(800);
+        valueAnimator.setStartDelay(200);
+        valueAnimator.setRepeatMode(ValueAnimator.RESTART);
+//        valueAnimator.setRepeatCount(models.size() -1);
+        valueAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+
+                animation.removeListener(this);
+                animation.addListener(this);
+                mCounter[0] = 0;
+//                        for(ArcProgressStackView.Model model : arcProgressStackView.getModels()) model.setProgress(50);
+
+                for(int i = 0; i < models.size(); i++){
+
+                    models.get(i).setProgress(modelsData[i]);
+                }
+                arcProgressStackView.animateProgress();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+                mCounter[0]++;
+            }
+        });
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+
+                    Float dataProgress = (Float) animation.getAnimatedValue();
+
+
+                    for (int i = 0; i < modelsData.length; i++) {
+                        if (dataProgress <= modelsData[i] && dataProgress >= (modelsData[i]/1.01f)) { //stops when size is reached
+
+                                arcProgressStackView.getModels().get(i)
+                                        .setProgress(dataProgress);
+
+                        }
+                    }
+
+
+//                        models.get(0).setProgress(a);
+
+                arcProgressStackView.postInvalidate();
+            }
+        });
+
+
+        valueAnimator.start();
+
     }
 }
