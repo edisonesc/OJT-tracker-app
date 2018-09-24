@@ -2,6 +2,7 @@ package com.example.edison.internshiptrackerapp.Adapters;
 
 import android.content.Context;
 
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v4.app.FragmentActivity;
@@ -11,16 +12,29 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFragment;
 import com.daimajia.swipe.SwipeLayout;
 import com.daimajia.swipe.adapters.RecyclerSwipeAdapter;
+import com.example.edison.internshiptrackerapp.DataHolder;
 import com.example.edison.internshiptrackerapp.HomeActivity;
 import com.example.edison.internshiptrackerapp.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import android.support.v4.app.Fragment;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import me.drakeet.materialdialog.MaterialDialog;
 
@@ -61,7 +75,7 @@ public class RecyclerViewAdapter extends RecyclerSwipeAdapter<RecyclerViewAdapte
     public static class  SimpleViewHolder extends RecyclerView.ViewHolder{
         public SwipeLayout swipeLayout;
         private TextView textViewPos;
-        private TextView textViewData;
+        private TextView textViewData, textViewDescription;
         private Button buttonDelete, buttonEdit;
 
         public View button;
@@ -73,6 +87,7 @@ public class RecyclerViewAdapter extends RecyclerSwipeAdapter<RecyclerViewAdapte
             textViewPos = itemView.findViewById(R.id.position);
             textViewData = itemView.findViewById(R.id.text_data);
             buttonDelete = itemView.findViewById(R.id.delete);
+            textViewDescription = itemView.findViewById(R.id.text_description);
 //            button = itemView.findViewById(R.id.trash);
             buttonEdit =itemView.findViewById(R.id.edit);
 
@@ -90,11 +105,15 @@ public class RecyclerViewAdapter extends RecyclerSwipeAdapter<RecyclerViewAdapte
     private Context mContext;
     int currFocused;
     private  MaterialDialog materialDialog;
-    private Button mTimeIn, mTimeOut;
+    private Button mTimeIn, mTimeOut, selectCustomDate;
     private ArrayList<String[]> mDataset;
-    public RecyclerViewAdapter(Context context, ArrayList<String[]> objects){
+    private ArrayList<String> mKeys, mDesc;
+    public RecyclerViewAdapter(Context context, ArrayList<String[]> objects, ArrayList<String> keys, ArrayList<String> mDesc){
+
         this.mContext = context;
         this.mDataset = objects;
+        this.mKeys = keys;
+        this.mDesc = mDesc;
     }
     @Override
     public  SimpleViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
@@ -104,6 +123,7 @@ public class RecyclerViewAdapter extends RecyclerSwipeAdapter<RecyclerViewAdapte
     @Override
     public void onBindViewHolder(final SimpleViewHolder viewHolder, final int position){
         final String timeIn = mDataset.get(position)[0], timeOut = mDataset.get(position)[1];
+        String desc = mDesc.get(position);
         viewHolder.swipeLayout.setShowMode(SwipeLayout.ShowMode.LayDown);
         mItemManger.bindView(viewHolder.itemView, position);
         viewHolder.swipeLayout.addSwipeListener(new SwipeLayout.SwipeListener() {
@@ -159,14 +179,24 @@ public class RecyclerViewAdapter extends RecyclerSwipeAdapter<RecyclerViewAdapte
             public void onClick(final View view) {
 
 
-//                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-//                FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
 //                FirebaseUser mUser = mAuth.getCurrentUser();
 //                String uid = mUser.getUid();
-                String selectedForDel = mDataset.get(position)[0];
+                final String selectedForDel = mKeys.get(position);
 
                 mItemManger.removeShownLayouts(viewHolder.swipeLayout);
+                databaseReference.child("Users").child("Edison").child("logs").child(DataHolder.getDate()).child(selectedForDel).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
 
+                            mDataset.remove(position);
+                            mKeys.remove(position);
+                            notifyItemRemoved(position);
+                            notifyItemRangeChanged(position , mDataset.size());
+                        Toast.makeText(mContext, "Deleted", Toast.LENGTH_SHORT).show();
+                    }
+                });
 //                databaseReference.child("Users").child(uid).child("Workouts").child(selectedForDel).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
 //                    @Override
 //                    public void onComplete(@NonNull Task<Void> task) {
@@ -194,6 +224,8 @@ public class RecyclerViewAdapter extends RecyclerSwipeAdapter<RecyclerViewAdapte
                 View timeLayout = LayoutInflater.from(mContext).inflate(R.layout.time_layout, null);
                 mTimeIn = timeLayout.findViewById(R.id.timeInButton);
                 mTimeOut = timeLayout.findViewById(R.id.timeOutButton);
+                final RadioGroup mDescription = timeLayout.findViewById(R.id.radioGroup);
+                selectCustomDate = timeLayout.findViewById(R.id.dateButton);
                 final String selectedTimeIn = mDataset.get(position)[0], selectedTimeOut = mDataset.get(position)[1];
                 mTimeIn.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -234,13 +266,46 @@ public class RecyclerViewAdapter extends RecyclerSwipeAdapter<RecyclerViewAdapte
                             public void onClick(View v) {
 //                                mTimes.add(mTimeIn.getText() + " | " + mTimeOut.getText());
 //                                adapter.notifyDataSetChanged();
+                                String[] times = {mTimeIn.getText().toString(), mTimeOut.getText().toString()};
+                                int radioButtonId = mDescription.getCheckedRadioButtonId();
+                                String desc = null;
+                                switch (radioButtonId){
+                                    case R.id.radioButtonMorning:
+                                        desc = "M";
+                                        break;
+                                    case R.id.radioButtonAfternoon:
+                                        desc = "A";
+                                        break;
+                                    case R.id.radioButtonOvertime:
+                                        desc = "OT";
+                                        break;
+
+                                    default:
+                                        desc = "";
+                                }
+                                Map map = new HashMap<>();
+                                map.put("time_in", times[0]);
+                                map.put("time_out", times[1]);
+                                map.put("desc", desc);
                                 materialDialog.dismiss();
-                                Toast.makeText(mContext, "Changed", Toast.LENGTH_SHORT).show();
+                                mItemManger.closeAllItems();
+                                final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+                                databaseReference.child("Users").child("Edison").child("logs").child(DataHolder.getDate())
+                                        .child(mKeys.get(position)).updateChildren(map).addOnSuccessListener(new OnSuccessListener() {
+                                    @Override
+                                    public void onSuccess(Object o) {
+                                        Toast.makeText(mContext, "Successfully Changed", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+
+
+
                             }
                         })
                         .setNegativeButton("Cancel", new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
+                                mItemManger.closeAllItems();
                                 materialDialog.dismiss();
                             }
                         });
@@ -250,7 +315,18 @@ public class RecyclerViewAdapter extends RecyclerSwipeAdapter<RecyclerViewAdapte
         });
         viewHolder.textViewPos.setText((position + 1) + ".");
         viewHolder.textViewData.setText(timeIn + " | " + timeOut);
+        int descColor;
+        switch (desc) {
 
+        case "OT":
+            descColor = Color.parseColor("#FFA63712");
+        break;
+
+        default:
+            descColor = Color.parseColor("#0e7846");
+    }
+        viewHolder.textViewDescription.setTextColor(descColor);
+        viewHolder.textViewDescription.setText(desc);
 
     }
     @Override

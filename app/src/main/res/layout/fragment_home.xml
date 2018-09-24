@@ -56,7 +56,7 @@
                 android:layout_height="wrap_content"
 
 
-                android:background="#d70a0a" />
+                android:background="#000" />
         </LinearLayout>
 
 

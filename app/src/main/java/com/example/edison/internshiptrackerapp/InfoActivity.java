@@ -343,8 +343,6 @@ public class InfoActivity extends Fragment implements Animator.AnimatorListener 
 
                             maxHour.add(Integer.valueOf(String.valueOf(timeLists.get(i)[0])));
 
-//                            Toast.makeText(getContext(), String.valueOf( timeLists.get(i)[1]), Toast.LENGTH_SHORT).show();
-//                            totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
                         }
 
 //
@@ -353,16 +351,9 @@ public class InfoActivity extends Fragment implements Animator.AnimatorListener 
                             long minutesToHours = Math.abs(totalMinutes1 / 60);
                             totalHours1 += minutesToHours;
                             totalMinutes1 -= 60;
-//                            Toast.makeText(getContext(), String.valueOf(minutesToHours + "\n" + totalHours
-//                            + "\n" + totalMinutes)  , Toast.LENGTH_SHORT).show();
-//                            totalDuration.setText(String.valueOf(totalHours + " hrs " + totalMinutes + " minutes"));
-
 
                         }
 
-//                        Toast.makeText(getContext(), "max :" + Collections.max(maxHour) + "\n"
-//                                + "min :" + Collections.min(maxHour)
-//                                , Toast.LENGTH_SHORT).show();
                         dataHolder.setMaxHours( Collections.max(maxHour));
                         dataHolder.setMinHours(Collections.min(maxHour));
 
@@ -375,11 +366,12 @@ public class InfoActivity extends Fragment implements Animator.AnimatorListener 
                     @Override
                     public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
+                        refresh();
                     }
 
                     @Override
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
-
+                        refresh();
                     }
 
                     @Override

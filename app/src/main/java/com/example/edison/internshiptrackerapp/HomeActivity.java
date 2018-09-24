@@ -1,5 +1,7 @@
 package com.example.edison.internshiptrackerapp;
 
+import android.app.FragmentManager;
+import android.app.usage.UsageEvents;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,9 +14,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.applandeo.materialcalendarview.CalendarView;
+import com.applandeo.materialcalendarview.EventDay;
+import com.applandeo.materialcalendarview.exceptions.OutOfDateRangeException;
+import com.applandeo.materialcalendarview.listeners.OnDayClickListener;
+import com.borax12.materialdaterangepicker.date.DatePickerDialog;
+import com.codetroopers.betterpickers.calendardatepicker.CalendarDatePickerDialogFragment;
 import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFragment;
 import com.example.edison.internshiptrackerapp.Adapters.RecyclerViewAdapter;
 import com.google.firebase.database.ChildEventListener;
@@ -27,11 +36,14 @@ import com.rey.material.widget.FloatingActionButton;
 import com.rey.material.widget.SnackBar;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import me.drakeet.materialdialog.MaterialDialog;
@@ -45,7 +57,7 @@ import me.drakeet.materialdialog.MaterialDialog;
  * Use the {@link HomeActivity#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class HomeActivity extends Fragment implements RadialTimePickerDialogFragment.OnTimeSetListener {
+public class HomeActivity extends Fragment implements RadialTimePickerDialogFragment.OnTimeSetListener, CalendarDatePickerDialogFragment.OnDateSetListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -88,16 +100,19 @@ public class HomeActivity extends Fragment implements RadialTimePickerDialogFrag
         }
     }
     private  MaterialDialog materialDialog;
-    private Button mTimeIn, mTimeOut;
+    private Button mTimeIn, mTimeOut, selectCustomDate;
     private int currFocused;
     private ArrayList<String[]> mTimes = new ArrayList<>();
+    private ArrayList<String> mKeys = new ArrayList<>(), mDesc = new ArrayList<>();
     private RecyclerView recyclerView;
     private CalendarView calendarView;
     private RecyclerView.Adapter adapter;
     private FirebaseDatabase firebaseDatabase;
     private DatabaseReference databaseReference;
     private  String[] primeTime = null;
+    Date currentDate;
     private  ArrayList test = new ArrayList();
+    private List<EventDay> eventDays = new ArrayList<>();
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
@@ -105,36 +120,80 @@ public class HomeActivity extends Fragment implements RadialTimePickerDialogFrag
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         calendarView = view.findViewById(R.id.calendarView);
         calendarView.showCurrentMonthPage();
-
+        currentDate = Calendar.getInstance().getTime();
         firebaseDatabase = FirebaseDatabase.getInstance();
         databaseReference = firebaseDatabase.getReference();
         FloatingActionButton addNewButton = view.findViewById(R.id.buttonAdd);
-        recyclerView = view.findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new RecyclerViewAdapter(getContext(), mTimes);
-        recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDrawable(R.drawable.divider)));
+//        recyclerView = view.findViewById(R.id.recycler_view);
+//        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+//        adapter = new RecyclerViewAdapter(getContext(), mTimes, mKeys);
+//        recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDrawable(R.drawable.divider)));
+        final DateFormat currFormatter = new SimpleDateFormat("dd-MM-yyyy");
 
-        recyclerView.setAdapter(adapter);
-        databaseReference.child("Users").child("Edison").child("logs").addChildEventListener(new ChildEventListener() {
+
+//        recyclerView.setAdapter(adapter);
+
+
+
+//
+//
+
+
+        calendarView.setOnDayClickListener(new OnDayClickListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            public void onDayClick(EventDay eventDay) {
 
-                primeTime = null;
-                String key = dataSnapshot.getKey();
-                databaseReference.child("Users").child("Edison").child("logs").child(key).addChildEventListener(new ChildEventListener() {
+                View recyclerLayoutView = LayoutInflater.from(getActivity()).inflate(R.layout.recyclerview_layout, null);
+                recyclerView = recyclerLayoutView.findViewById(R.id.recycler_view);
+                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                adapter = new RecyclerViewAdapter(getContext(), mTimes, mKeys , mDesc);
+                recyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDrawable(R.drawable.divider)));
+                recyclerView.setAdapter(adapter);
+
+                String date = currFormatter.format(eventDay.getCalendar().getTime());
+
+                materialDialog = new MaterialDialog(getActivity())
+                        .setTitle("History: "+date)
+                        .setContentView(recyclerLayoutView)
+                        .setMessage("hey")
+                        .setNegativeButton("Dismiss", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                materialDialog.dismiss();
+                            }
+                        });
+                materialDialog.show();
+
+
+
+
+
+
+
+                Toast.makeText(getContext(), date, Toast.LENGTH_SHORT).show();
+                DataHolder.setDate(date);
+                mTimes.clear();
+                mKeys.clear();
+                mDesc.clear();
+                eventDays.clear();
+
+
+
+                databaseReference.child("Users").child("Edison").child("logs").child(date).addChildEventListener(new ChildEventListener() {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
-//                        Toast.makeText(getContext(),
-//                                String.valueOf(dataSnapshot.child("time_in")), Toast.LENGTH_SHORT).show();
+
 
                         String timeIn = dataSnapshot.child("time_in").getValue(String.class);
                         String timeOut = dataSnapshot.child("time_out").getValue(String.class);
+                        String desc = dataSnapshot.child("desc").getValue(String.class);
                         String[] times = {timeIn, timeOut};
                         primeTime = times;
+                        mDesc.add(desc);
                         mTimes.add(primeTime);
+                        mKeys.add(dataSnapshot.getKey());
                         adapter.notifyDataSetChanged();
-
                     }
 
                     @Override
@@ -158,16 +217,55 @@ public class HomeActivity extends Fragment implements RadialTimePickerDialogFrag
                     }
 
                 });
+
+            }
+        });
+
+        databaseReference.child("Users").child("Edison").child("logs").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+
+
+
+                try {
+
+                    Date da = currFormatter.parse(dataSnapshot.getKey());
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(da);
+                    eventDays.add(new EventDay(cal, R.drawable.ic_adjust_black_24dp));
+                    calendarView.setEvents(eventDays);
+
+
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                adapter.notifyDataSetChanged();
+
+
+
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                adapter.notifyDataSetChanged();
+                try {
+
+                    Date da = currFormatter.parse(dataSnapshot.getKey());
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(da);
+                    eventDays.add(new EventDay(cal, R.drawable.ic_adjust_black_24dp));
+                    calendarView.setEvents(eventDays);
+
+
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -179,37 +277,30 @@ public class HomeActivity extends Fragment implements RadialTimePickerDialogFrag
             public void onCancelled(DatabaseError databaseError) {
 
             }
+
         });
 
-
-
-
-//        databaseReference.child("Users").child("Edison").addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                Toast.makeText(getContext(), String.valueOf(dataSnapshot.getChildren()), Toast.LENGTH_SHORT).show();
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//
-//            }
-//        });
         addNewButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 View timeLayout = LayoutInflater.from(getActivity()).inflate(R.layout.time_layout, null);
                 mTimeIn = timeLayout.findViewById(R.id.timeInButton);
                 mTimeOut = timeLayout.findViewById(R.id.timeOutButton);
+                final RadioGroup mDescription = timeLayout.findViewById(R.id.radioGroup);
+                selectCustomDate = timeLayout.findViewById(R.id.dateButton);
                 DateFormat currFormatter = new SimpleDateFormat("dd/MM/yyyy");
                 Date date = Calendar.getInstance().getTime();
                 final String formatedDate = currFormatter.format(date).replace('/','-');
                 mTimeIn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        Date date = new Date();
+                        Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+                        calendar.setTime(date);   // assigns calendar to given date
+
                         RadialTimePickerDialogFragment rtpd = new RadialTimePickerDialogFragment()
                                 .setOnTimeSetListener(HomeActivity.this)
-                                .setStartTime(10, 10)
+                                .setStartTime(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE))
                                 .setDoneText("Yay")
                                 .setCancelText("Nop");
 
@@ -222,7 +313,7 @@ public class HomeActivity extends Fragment implements RadialTimePickerDialogFrag
                     public void onClick(View v) {
                         RadialTimePickerDialogFragment rtpd = new RadialTimePickerDialogFragment()
                                 .setOnTimeSetListener(HomeActivity.this)
-                                .setStartTime(10, 10)
+                                .setStartTime(15, 00)
                                 .setDoneText("Yay")
                                 .setCancelText("Nop");
                         currFocused = 1;
@@ -237,17 +328,41 @@ public class HomeActivity extends Fragment implements RadialTimePickerDialogFrag
                             @Override
                             public void onClick(View v) {
                                 String[] times = {mTimeIn.getText().toString(), mTimeOut.getText().toString()};
-                                mTimes.add(times);
-                                String idKey = databaseReference.child("Edison").child(formatedDate).push().getKey();
-                                Map map = new HashMap<>();
-                                map.put("time_in", times[0]);
-                                map.put("time_out", times[1]);
+                                if(times[0].equals("+") || times[1].equals("+") || times[0].equals("+") && times[1].equals("+")){
 
-                                databaseReference.child("Users").child("Edison").child("logs").child(formatedDate).child(idKey).setValue(map);
+
+                                }
+                                else {
+                                    mTimes.add(times);
+//                                    adapter.notifyDataSetChanged();
+                                    String idKey = databaseReference.child("Edison").child(selectCustomDate.getText().toString()).push().getKey();
+                                    int radioButtonId = mDescription.getCheckedRadioButtonId();
+                                    String desc = null;
+                                    switch (radioButtonId){
+                                        case R.id.radioButtonMorning:
+                                            desc = "M";
+                                            break;
+                                        case R.id.radioButtonAfternoon:
+                                            desc = "A";
+                                            break;
+                                        case R.id.radioButtonOvertime:
+                                            desc = "OT";
+                                            break;
+
+                                            default:
+                                                desc = "";
+                                    }
+                                    Map map = new HashMap<>();
+                                    map.put("time_in", times[0]);
+                                    map.put("time_out", times[1]);
+                                    map.put("desc", desc);
+
+                                    databaseReference.child("Users").child("Edison").child("logs").child(selectCustomDate.getText().toString()).child(idKey).setValue(map);
 //                                mTimes.clear();
-                                adapter.notifyDataSetChanged();
-                                materialDialog.dismiss();
-                                Toast.makeText(getActivity(), "Added", Toast.LENGTH_SHORT).show();
+
+                                    materialDialog.dismiss();
+                                    Toast.makeText(getActivity(), "Added", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         })
                         .setNegativeButton("Cancel", new View.OnClickListener() {
@@ -257,6 +372,21 @@ public class HomeActivity extends Fragment implements RadialTimePickerDialogFrag
                             }
                         });
                 materialDialog.show();
+                selectCustomDate.setText(formatedDate);
+                selectCustomDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Calendar calendar = Calendar.getInstance();
+                        CalendarDatePickerDialogFragment cdp = new CalendarDatePickerDialogFragment()
+                                .setOnDateSetListener(HomeActivity.this)
+                                .setPreselectedDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+                                .setDoneText("Select")
+                                .setCancelText("Back");
+
+                            cdp.show(getFragmentManager(), null);
+
+                    }
+                });
 
             }
         });
@@ -308,6 +438,23 @@ public class HomeActivity extends Fragment implements RadialTimePickerDialogFrag
                 mTimeOut.setText( getString(R.string.radial_time_picker_result_value, hourOfDay, minute) + " " + AM_PM);
                 break;
         }
+    }
+
+
+    @Override
+    public void onDateSet(CalendarDatePickerDialogFragment dialog, int year, int monthOfYear, int dayOfMonth) {
+
+        String valueOfday = String.valueOf(dayOfMonth), monthString = String.valueOf(monthOfYear + 1);
+        if(valueOfday.length() <= 1){
+
+            valueOfday = "0" + valueOfday;
+        }
+        if(monthString.length() <= 1){
+            monthString = "0" + monthString;
+        }
+
+
+        selectCustomDate.setText(valueOfday + "-"+ monthString+ "-" + year);
     }
 
     /**

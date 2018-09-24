@@ -64,7 +64,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:text="20 hrs 30 min"
+                    android:text="N/A"
                     android:textColor="#000"
                     android:gravity="end|center"
                     android:textSize="30sp"
@@ -102,7 +102,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:text="400 hours"
+                    android:text="N/A"
                     android:textColor="#000"
                     android:gravity="end|center"
                     android:textSize="30sp"
@@ -144,6 +144,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:layout_marginTop="10dp"
                 android:layout_marginStart="90dp"
                 >
 
@@ -206,7 +207,8 @@
             </LinearLayout>
 
             <devlight.io.library.ArcProgressStackView
-
+                android:layout_marginTop="10dp
+"
                 android:id="@+id/apsv"
                 android:layout_marginStart="40dp"
                 android:layout_marginEnd="40dp"
@@ -216,6 +218,7 @@
                 app:apsv_rounded="false"
                 app:apsv_shadowed="false"
                 app:apsv_animated="true"
+                android:layout_marginBottom="10dp"
                 app:apsv_dragged="true"
                 app:apsv_leveled="true"
                 app:apsv_typeface="fonts/agency.ttf"

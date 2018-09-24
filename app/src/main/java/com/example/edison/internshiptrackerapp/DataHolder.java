@@ -7,8 +7,12 @@ public class DataHolder {
 
     private static long totalHours;
     private  static  int maxHours, minHours, hoursSize, goalHours;
+    private static String date;
+    public static void setDate(String d){
 
-    public void setGoalHours(int h){
+        DataHolder.date = d;
+    }
+    public static void setGoalHours(int h){
 
         DataHolder.goalHours = h;
     }
@@ -43,6 +47,9 @@ public class DataHolder {
 
     public static long getTotalHours(){
         return  totalHours;
+    }
+    public static String getDate(){
+        return date;
     }
 
 
